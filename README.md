@@ -1,6 +1,6 @@
 # Server for stogacs.club ![Banner](./banner.png)
 
-> **Note:**  
+> **Note**  
 > This is the repository that handles dynamic features for the Conestoga Computer Science Club's website. It should be maintained by a member of the current club leadership, and everybody is welcome to contribute! Check out the site's [repository](https://github.com/stogacs/website) or the [actual site](https://stogacs.club).
 
 ## Instructions
@@ -77,7 +77,7 @@ If you don't have any data, you'll want to create new `store.json` and `user.jso
 
 The `expires_after` is an optional property that defines how long the item will remain in a user's inventory before being removed (it is a timestamp in milliseconds). The `expires_at` is an optional property that defines when the item will be removed from the store (it's a UNIX timestamp in milliseconds). You can generate timestamps with tools like [Epoch Converter](https://www.epochconverter.com/).
 
-> **Info:**  
+> **Warning**  
 > This file contains properties that are not currently used and are reserved for future features.
 
 #### Example users.json
@@ -90,7 +90,7 @@ The `expires_after` is an optional property that defines how long the item will 
     "admin": false,
     "Shekels": 10,
     "email": "example@example.com",
-    "displayName": "Ella Fotzeu",
+    "displayName": "Joe Sharick",
     "tokens": []
   },
   {
@@ -124,8 +124,8 @@ After installing the node modules, you can run the server with the following com
 npm run serve
 ```
 
-> **Info:**  
-> For hosting the server, you can use a program like [pm2](https://pm2.keymetrics.io/) to run the server on startup and keep it running.
+> **Note**  
+> For hosting the server, you should use a program like [pm2](https://pm2.keymetrics.io/) to run the server on startup and keep it running.
 
 ## Contributing
 
