@@ -11,6 +11,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 
 const config = require('./config.json');
+const jsWords = ['null', 'undefined'];
 const ver = config.version;
 let badNames = config.badNames;
 
@@ -79,7 +80,7 @@ class User {
 		Shekels,
 		email,
 		discordID,
-		displayName,
+		display_name,
 		discordInfo,
 		discordGuilds,
 		discordToken,
@@ -95,7 +96,7 @@ class User {
 		this.Shekels = Shekels;
 		this.email = email;
 		this.discordID = discordID;
-		this.displayName = displayName;
+		this.display_name = display_name;
 		this.discordInfo = discordInfo;
 		this.discordGuilds = discordGuilds;
 		this.discordToken = discordToken;
@@ -108,13 +109,13 @@ class User {
 }
 
 class PublicUser {
-	constructor(name, id, Shekels, gradYear, discordLinked, displayName) {
+	constructor(name, id, Shekels, gradYear, discordLinked, display_name) {
 		this.name = name;
 		this.id = id;
 		this.shekels = Shekels;
 		this.graduation_year = parseInt(gradYear);
 		this.discord_linked = discordLinked;
-		this.displayName = displayName;
+		this.display_name = display_name;
 	}
 }
 
@@ -135,7 +136,7 @@ class UserManager {
 					user.Shekels,
 					user.email,
 					user.discordID,
-					user.displayName,
+					user.display_name,
 					user.discordInfo,
 					user.discordGuilds,
 					user.discordToken,
@@ -219,7 +220,7 @@ class UserManager {
 		return products;
 	}
 
-	geLoginCodeByUser(user) {
+	getLoginCodeByUser(user) {
 		this.loadUsers();
 		if (user.logonCode && user.logonCodeExpires > Date.now()) {
 			return {
@@ -231,7 +232,7 @@ class UserManager {
 			const logonCode = Math.floor(100000 + Math.random() * 900000);
 			user.logonCode = logonCode;
 			user.logonCodeExpires = Date.now() + 900000;
-			this.userManager.writeUser(user);
+			this.writeUser(user);
 			return {
 				success: true,
 				logonCode,
@@ -300,7 +301,7 @@ function updateFile() {
 				users[i].Shekels,
 				users[i].email,
 				users[i].discordID,
-				users[i].displayName,
+				users[i].display_name,
 				users[i].discordInfo,
 				users[i].discordGuilds,
 				users[i].discordToken,
@@ -541,7 +542,7 @@ app.get('/streaks/bump', async (req, res) => {
 	}
 	let userIndex = userArray.findIndex((u) => u.name === name);
 	if (userIndex === -1) {
-		userIndex = userArray.findIndex((u) => u.displayName === name);
+		userIndex = userArray.findIndex((u) => u.display_name === name);
 		if (userIndex === -1) {
 			userIndex = userArray.findIndex((u) => u.name === removeMiddle(name));
 		}
@@ -701,7 +702,7 @@ app.get('/auth/discord/callback', (req, res) => {
 									Shekels: 0,
 									email: user.email,
 									discordID: user.id,
-									displayName: null,
+									display_name: null,
 									discordInfo: userResponse.data,
 									discordGuilds: guildResponse.data,
 									discordToken: token,
@@ -766,7 +767,7 @@ app.get('/discord/user', (req, res) => {
 			shekels: user.Shekels,
 			email: user.email,
 			discordID: user.discordID,
-			displayName: user.displayName,
+			display_name: user.display_name,
 			discordUsername: user.discordInfo.username,
 			discordDiscriminator: user.discordInfo.discriminator,
 			discordAvatar: user.discordInfo.avatar,
@@ -871,7 +872,7 @@ app.post('/leaderboard/claim', async (req, res) => {
 	if (oldUserSearchObj.success) {
 		if (oldUserSearchObj.user.hasOwnProperty('email') && oldUserSearchObj.user.email !== null)
 			user.email = oldUserSearchObj.user.email;
-		user.displayName = oldUserSearchObj.user.displayName || '';
+		user.display_name = oldUserSearchObj.user.display_name || '';
 		userManager.writeUser(oldUserSearchObj.user);
 		logEvent('Account Linked\n\nOldUser: ' + oldUserSearchObj.user.name, user);
 	} else {
@@ -928,7 +929,7 @@ app.post('/leaderboard/update_prefs', (req, res) => {
 
 		if (setName) {
 			try {
-				user.displayName = display_name;
+				user.display_name = display_name;
 			} catch (error) {
 				setName = false;
 				return res.status(400).send({
@@ -984,8 +985,11 @@ app.post('/users/update', (req, res) => {
 				logEvent(`User ${userArray[userIndex].name} (${userArray[userIndex].id}) Updated via API`);
 				matchedUsers.push(userArray[userIndex]);
 				userArray[userIndex].name = user.real_name;
-				userArray[userIndex].displayName = user.display_name;
+				userArray[userIndex].display_name = user.display_name;
 				userArray[userIndex].Shekels = user.shekels;
+				if (jsWords.includes(userArray[userIndex].display_name.toLowerCase())) {
+					userArray[userIndex].display_name = null;
+				}
 			} else {
 				console.log('User not found, creating new user.');
 				if (typeof User === 'function') {
@@ -1014,6 +1018,12 @@ app.post('/users/update', (req, res) => {
 		fs.writeFile('./data/users.json', JSON.stringify(userArray, null, 4), (err) => {
 			if (err) throw err;
 		});
+
+		res.send({
+			success: true,
+			message: 'Users updated successfully.',
+			users: matchedUsers,
+		});
 	} else {
 		res.status(404).send('Invalid token.');
 	}
@@ -1023,7 +1033,7 @@ app.get('/me/login_code', (req, res) => {
 	updateFile();
 	let user = userManager.getUserByRequest(req).user;
 	if (user) {
-		let logonCode = userManager.geLoginCodeByUser(user);
+		let logonCode = userManager.getLoginCodeByUser(user);
 
 		if (logonCode.success) {
 			return res.send({
@@ -1126,15 +1136,15 @@ app.get('/users', (req, res) => {
 					userArray[i].Shekels,
 					gradYear,
 					hasDiscord,
-					userArray[i].displayName,
+					userArray[i].display_name,
 				),
 			);
 		}
 	}
 
 	safeUsers.sort((a, b) => {
-		const aDisplayName = a.display_name || a.name || 'N/A';
-		const bDisplayName = b.display_name || b.name || 'N/A';
+		const adisplay_name = a.display_name || a.name || 'N/A';
+		const bdisplay_name = b.display_name || b.name || 'N/A';
 
 		if (a.discord_linked && !b.discord_linked) {
 			return -1; // a has discord_linked and b doesn't
@@ -1142,7 +1152,7 @@ app.get('/users', (req, res) => {
 			return 1; // b has discord_linked and a doesn't
 		} else {
 			// Both have or don't have discord_linked, sort alphabetically by display name
-			return aDisplayName.toLowerCase().localeCompare(bDisplayName.toLowerCase());
+			return adisplay_name.toLowerCase().localeCompare(bdisplay_name.toLowerCase());
 		}
 	});
 
