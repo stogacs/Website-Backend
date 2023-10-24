@@ -479,7 +479,7 @@ app.post('/shop/purchase', (req, res) => {
 		sendWebhook(
 			purchaseHook,
 			'New Purchase',
-			`${requestUser.name} purchased ${item.title} for ${item.price} Shekels.\n\nThey now have ${requestUser.Shekels} Shekels.\n\n${ownedQuantity} owned.`,
+			`${requestUser.name} purchased ${item.title} for ${item.price} Shekels.\n\nThey now have ${requestUser.Shekels} Shekels.`,
 			7855479,
 			footer,
 			['Shekels', 'https://shekels.mrsharick.com/getasset/shekels_user.png'],
