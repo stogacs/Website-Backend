@@ -575,7 +575,7 @@ app.get('/streaks/bump', async (req, res) => {
 			}
 		}
 
-		userArray[userIndex].Shekels += (streak + 1) * 2 - 1;
+		userArray[userIndex].Shekels = parseInt(userArray[userIndex].Shekels) + (streak + 1) * 2 - 1;
 		fs.writeFile('./data/users.json', JSON.stringify(userArray, null, 4), (err) => {
 			if (err) throw err;
 		});
@@ -590,7 +590,13 @@ app.get('/streaks/bump', async (req, res) => {
 			'',
 			['Shekels', 'https://shekels.mrsharick.com/getasset/shekels_user.png'],
 		);
-		logEvent('Streak Bumped', requestUser);
+		logEvent(
+			'Streak Bumped | Previous Shekels: ' +
+				requestUser.Shekels +
+				' | New Shekels: ' +
+				(requestUser.Shekels + (streak + 1) * 2 - 1),
+			requestUser,
+		);
 
 		res.send({
 			success: true,
